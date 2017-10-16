@@ -40,7 +40,7 @@ def get_header():
 \\setlength{\\arrayrulewidth}{.2em}
 
 % Custom font
-\\usepackage{fontspec}
+\\usepackage[quiet]{fontspec}
 \\setmainfont{Courier}
 
 
@@ -95,6 +95,6 @@ if __name__ == "__main__":
 
     ### 5) Convert TeX file to pdf file
     _basename = os.path.basename(_filename).split('.')[0]
-    os.system('"xelatex" -synctex=1 -interaction=nonstopmode {}'.format(_filename))
+    os.system('"xelatex" -synctex=1 -interaction=nonstopmode -halt-on-error {}'.format(_filename))
     os.system('mv {}.pdf ./pdf/{}.pdf'.format(os.path.join(_cwd, _basename), _basename))
     os.system('rm {}.*'.format(_basename))
