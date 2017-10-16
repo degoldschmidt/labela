@@ -1,12 +1,26 @@
-from cli import *
-from test import load_data
 import tkinter as tk
 from tkinter import filedialog
 import os
 
+from cli import *
+from test import load_data
+from yamlio import *
+from gapp import *
+
 class Label(object):
     def __init__(self, _name, _date):
         self.name = _name
+        self.name = self.name.replace('_', '\\_')
+        self.name = self.name.replace('#', '\\#')
+        self.sizer = 'large'
+        if len(self.name) > 10:
+            self.sizer = 'normalsize'
+        if len(self.name) > 15:
+            self.sizer = 'small'
+        if len(self.name) > 20:
+            self.sizer = 'footnotesize'
+        if len(self.name) > 30:
+            self.sizer = 'scriptsize'
         self.date = _date
         if _date == 'today':
             self.date = '\\today'
@@ -23,7 +37,8 @@ class Label(object):
 """.format(self.TL, self.TC, self.TR)
         else:
             out_header = "\\vspace*{-0.15cm}\n"
-        main =  "\\begin{large}\n" + "{0:} \\\\[0.5em]\n".format(self.name) +  "\\end{large}\n" + "{1:}\n\\newpage".format(self.name, self.date)
+
+        main =  "\\begin{"+self.sizer+"}\n" + "{0:} \\\\[0.5em]\n".format(self.name) +  "\\end{"+self.sizer+"}\n" + "\\footnotesize{1:}\n\\newpage".format(self.name, self.date)
         return out_header + main
 
 def get_header():
@@ -60,13 +75,31 @@ def get_footer():
 def convert2pdf(_file, _out=""):
     pass
 
+def get_gsheets(sheet=None, srange=None):
+    if sheet is None:
+        if os.path.exists(find_stocks()) and query_yn("Found stocks file. Do you want to use it?", default='yes'):
+            sheetid = read_yaml(find_stocks())['id']
+            sheetrange = read_yaml(find_stocks())['range']
+        else:
+            sheetid = query_val("Type Google Sheet identifier", "[Can be found in the url address of your sheet after /d/]")
+            sheetrange = query_val("Type sheet range to import", "[Press ENTER if you want to load all data]")
+            if query_yn("Do you want to save this sheet for future use?", default='yes'):
+                write_yaml(find_stocks(), {'id': sheetid, 'range': sheetrange})
+    else:
+        sheetid = sheet
+        sheetrange = srange
+
+    gsheets = GApp(sheetid)
+    values = gsheets.get_data(sheetrange)
+    df = list_to_df(values)
+    return df.dropna(how='all')
+
 
 if __name__ == "__main__":
     tk.Tk().withdraw()
     ### 1) Type in google sheets ID
     # tkinter entry window OR command line interface
-    #_id = query_val('Please type in ID for google sheets', '\n[You can find the ID in the URL to the sheets]\n')
-    df = load_data() # test data
+    df = get_gsheets() # test data
 
     ### 2) Show data in table
     print("\nYour stocks:")
