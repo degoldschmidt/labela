@@ -1,6 +1,6 @@
 import tkinter as tk
 from tkinter import filedialog
-import os
+import os, sys
 
 from cli import *
 from test import load_data
@@ -36,9 +36,9 @@ class Label(object):
 \\end\{tabular\}
 """.format(self.TL, self.TC, self.TR)
         else:
-            out_header = "\\vspace*{-0.15cm}\n"
+            out_header = "\\topskip0pt\n\\vspace*{\\fill}"
 
-        main =  "\\begin{"+self.sizer+"}\n" + "{0:} \\\\[0.5em]\n".format(self.name) +  "\\end{"+self.sizer+"}\n" + "\\footnotesize{1:}\n\\newpage".format(self.name, self.date)
+        main =  "\\begin{"+self.sizer+"}\n" + "{0:} \\\\[0.5em]\n".format(self.name) +  "\\end{"+self.sizer+"}\n" + "\\footnotesize{1:}\n".format(self.name, self.date) + "\\vspace*{\\fill}\n\\newpage"
         return out_header + main
 
 def get_header():
@@ -56,7 +56,7 @@ def get_header():
 
 % Custom font
 \\usepackage[quiet]{fontspec}
-\\setmainfont{Courier}
+\\setmainfont{Courier New}
 
 
 % Format date
@@ -129,5 +129,9 @@ if __name__ == "__main__":
     ### 5) Convert TeX file to pdf file
     _basename = os.path.basename(_filename).split('.')[0]
     os.system('"xelatex" -synctex=1 -interaction=nonstopmode -halt-on-error {}'.format(_filename))
-    os.system('mv {}.pdf ./pdf/{}.pdf'.format(os.path.join(_cwd, _basename), _basename))
-    os.system('rm {}.*'.format(_basename))
+    if sys.platform == 'win32' or sys.platform == 'win64':
+        os.system('copy {}.pdf {}.pdf'.format(os.path.join(_cwd, _basename), os.path.join(_cwd, 'pdf',_basename)))
+        os.system('del {}.*'.format(_basename))
+    else:
+        os.system('cp {}.pdf ./pdf/{}.pdf'.format(os.path.join(_cwd, _basename), _basename))
+        os.system('rm {}.*'.format(_basename))
